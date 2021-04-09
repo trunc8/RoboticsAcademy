@@ -8,7 +8,7 @@ from datetime import datetime
 import re
 import json
 import traceback
-import importlib as imp
+import imp
 
 import rospy
 from std_srvs.srv import Empty
