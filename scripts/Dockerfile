@@ -1,4 +1,4 @@
-FROM osrf/ros:melodic-desktop-full
+FROM osrf/ros:noetic-desktop-full
 ENV NVIDIA_VISIBLE_DEVICES \
     ${NVIDIA_VISIBLE_DEVICES:-all}
 
@@ -69,12 +69,12 @@ RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
 
 RUN which xxd || apt install xxd -y || apt install vim-common --no-install-recommends -y
 
-# gtest
-RUN cd /usr/src/gtest \
-	&& mkdir build && cd build \
-	&& cmake .. && make -j$(nproc) \
-	&& cp *.a /usr/lib \
-	&& cd .. && rm -rf build
+# # gtest
+# RUN cd /usr/src/gtest \
+# 	&& mkdir build && cd build \
+# 	&& cmake .. && make -j$(nproc) \
+# 	&& cp *.a /usr/lib \
+# 	&& cd .. && rm -rf build
 
 # Install Python 3 pip build dependencies first.
 RUN pip3 install wheel setuptools
@@ -124,13 +124,13 @@ RUN wget --quiet http://packages.osrfoundation.org/gazebo.key -O - | apt-key add
 	&& DEBIAN_FRONTEND=noninteractive apt-get -y --quiet --no-install-recommends install \
 		ant \
 		bc \
-		gazebo9 \
+		gazebo11 \
 		gstreamer1.0-plugins-bad \
 		gstreamer1.0-plugins-base \
 		gstreamer1.0-plugins-good \
 		gstreamer1.0-plugins-ugly \
 		libeigen3-dev \
-		libgazebo9-dev \
+		libgazebo11-dev \
 		libgstreamer-plugins-base1.0-dev \
 		libimage-exiftool-perl \
 		libopencv-dev \
@@ -140,7 +140,7 @@ RUN wget --quiet http://packages.osrfoundation.org/gazebo.key -O - | apt-key add
 	&& apt-get clean autoclean \
 	&& rm -rf /var/lib/apt/lists/{apt,dpkg,cache,log} /tmp/* /var/tmp/*
 
-ENV ROS_DISTRO melodic
+ENV ROS_DISTRO noetic
 
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 \
 	&& sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list' \
@@ -152,11 +152,11 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key C1CF6E31E6B
 		libgeographic-dev \
 		libopencv-dev \
 		libyaml-cpp-dev \
-		python-pip \
+		# python-pip \
 		python-tk \
 		ros-$ROS_DISTRO-gazebo-ros-pkgs \
-		ros-$ROS_DISTRO-jderobot-drones \
-		ros-$ROS_DISTRO-mav-msgs \
+		# ros-$ROS_DISTRO-jderobot-drones \
+		# ros-$ROS_DISTRO-mav-msgs \
 		ros-$ROS_DISTRO-mavlink \
 		ros-$ROS_DISTRO-mavros \
 		ros-$ROS_DISTRO-mavros-extras \
@@ -177,39 +177,39 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key C1CF6E31E6B
 
 # Install everything again for Python 2 because we could not get Firmware
 # to compile using catkin without it.
-RUN pip install wheel setuptools
-RUN pip install argcomplete argparse catkin_pkg catkin-tools cerberus coverage \
-    empy jinja2 matplotlib==2.2.* numpy pkgconfig px4tools pygments pymavlink \
-    packaging pyros-genmsg pyulog==0.8.* pyyaml requests rosdep rospkg serial six toml
+# RUN pip install wheel setuptools
+# RUN pip install argcomplete argparse catkin_pkg catkin-tools cerberus coverage \
+#     empy jinja2 matplotlib==2.2.* numpy pkgconfig px4tools pygments pymavlink \
+#     packaging pyros-genmsg pyulog==0.8.* pyyaml requests rosdep rospkg serial six toml
 
 # bootstrap rosdep
 # RUN rosdep init && rosdep update
 RUN rosdep update
 
 ## PX4 src
-RUN apt upgrade -y --quiet --no-install-recommends libignition-math2
-RUN git clone --recursive https://github.com/PX4/Firmware.git -b v1.11.3 \
-	&& cd /Firmware \
-	&& DONT_RUN=1 make px4_sitl_default gazebo
+# RUN apt upgrade -y --quiet --no-install-recommends libignition-math2
+# RUN git clone --recursive https://github.com/PX4/Firmware.git -b v1.11.3 \
+# 	&& cd /Firmware \
+# 	&& DONT_RUN=1 make px4_sitl_default gazebo
 
 
 # Get the Custom Robot Repository
 # and set the environment variables
 RUN mkdir -p /opt/jderobot && cd /opt/jderobot && git clone https://github.com/JdeRobot/CustomRobots.git \
-    && cd CustomRobots && git checkout melodic-devel && git pull origin melodic-devel
+    && cd CustomRobots && git checkout noetic-devel && git pull origin noetic-devel
 
 ## Setting env vars
-ENV GAZEBO_RESOURCE_PATH "$GAZEBO_RESOURCE_PATH:/usr/share/gazebo-9:/RoboticsAcademy/exercises/follow_line/web-template/launch"
-ENV GAZEBO_PLUGIN_PATH "$GAZEBO_PLUGIN_PATH:/usr/lib/x86_64-linux-gnu/gazebo-9/plugins:/Firmware/build/px4_sitl_default/build_gazebo"
-ENV GAZEBO_MODEL_PATH "$GAZEBO_MODEL_PATH:/usr/share/gazebo-9/models:/opt/jderobot/CustomRobots/f1:/opt/jderobot/CustomRobots/roomba_robot:/opt/jderobot/CustomRobots/3d_reconstruction:/Firmware/Tools/sitl_gazebo/models:/opt/ros/melodic/share/drone_assets/models"
-ENV LD_LIBRARY_PATH "$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu/gazebo-9/plugins:/Firmware/build/px4_sitl_default/build_gazebo"
+ENV GAZEBO_RESOURCE_PATH "$GAZEBO_RESOURCE_PATH:/usr/share/gazebo-11:/RoboticsAcademy/exercises/follow_line/web-template/launch"
+ENV GAZEBO_PLUGIN_PATH "$GAZEBO_PLUGIN_PATH:/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:/Firmware/build/px4_sitl_default/build_gazebo"
+ENV GAZEBO_MODEL_PATH "$GAZEBO_MODEL_PATH:/usr/share/gazebo-11/models:/opt/jderobot/CustomRobots/f1/models:/opt/jderobot/CustomRobots/roomba_robot:/opt/jderobot/CustomRobots/3d_reconstruction:/Firmware/Tools/sitl_gazebo/models:/opt/ros/noetic/share/drone_assets/models"
+ENV LD_LIBRARY_PATH "$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:/Firmware/build/px4_sitl_default/build_gazebo"
 
 # GzWeb
 # https://answers.gazebosim.org//question/15807/node-gyp-build-errors-while-trying-to-install-gzweb/
 RUN curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
 RUN apt-get install -y nodejs
-RUN git clone https://github.com/osrf/gzweb.git
-RUN cd gzweb && git checkout gzweb_1.4.0 && npm run deploy --- -m local
+# RUN git clone https://github.com/osrf/gzweb.git
+# RUN cd gzweb && git checkout gzweb_1.4.0 && npm run deploy --- -m local
 
 # VNC
 RUN apt-get -y install x11vnc
@@ -225,11 +225,12 @@ RUN git clone https://github.com/novnc/noVNC.git &&\
 RUN apt-get -y install xterm
 
 # RoboticsAcademy
-RUN git clone https://github.com/JdeRobot/RoboticsAcademy.git && cd RoboticsAcademy && git pull origin master
+# RUN git clone https://github.com/JdeRobot/RoboticsAcademy.git && cd RoboticsAcademy && git pull origin master
+RUN git clone https://github.com/trunc8/RoboticsAcademy && cd RoboticsAcademy && git pull origin noetic-RADI
 
 # Certain Dependencies for Exercises
 # Vacuum Cleaner Exercise
-RUN apt-get -y --quiet install ros-melodic-kobuki-msgs
+# RUN apt-get -y --quiet install ros-melodic-kobuki-msgs
 
 # Drone-cat-mouse
 RUN apt-get -y --quiet --no-install-recommends install xmlstarlet
@@ -239,8 +240,8 @@ RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
 	ros-$ROS_DISTRO-turtlebot3-description
 
 # Put the other commands in bashrc file
-RUN echo 'source /opt/ros/melodic/setup.bash' >> ~/.bashrc
-RUN echo 'source /usr/share/gazebo-9/setup.sh' >> ~/.bashrc
+RUN echo 'source /opt/ros/noetic/setup.bash' >> ~/.bashrc
+RUN echo 'source /usr/share/gazebo-11/setup.sh' >> ~/.bashrc
 
 # Install and run XDummy XServer
 RUN apt-get update && apt-get -y install xserver-xorg-video-dummy x11-apps
@@ -252,9 +253,13 @@ RUN echo 'export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/Firmware' >> ~/.bashrc
 RUN echo 'export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/Firmware/Tools/sitl_gazebo' >> ~/.bashrc
 
 # websocket server dependency
-RUN apt-get update && apt-get install -y python2.7 python-pip
-RUN pip install websocket_server
+# RUN apt-get update && apt-get install -y python2.7 python-pip
+# RUN pip install websocket_server
 COPY manager.py /manager.py
+## For noetic
+COPY manager-noetic.py /manager-noetic.py
+RUN pip3 install websocket_server
+
 RUN apt-get install -y python3.8 python3-pip
 RUN python3.8 -m pip install websockets asyncio
 
